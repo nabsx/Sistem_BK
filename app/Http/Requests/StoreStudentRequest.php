@@ -9,7 +9,7 @@ class StoreStudentRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->hasAnyRole(['admin', 'guru_bk']) ?? false;
+        return $this->user() !== null;
     }
 
     public function rules(): array
