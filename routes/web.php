@@ -1,0 +1,73 @@
+<?php
+
+use App\Http\Controllers\Api\CounselingSessionController;
+use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\StudentController;
+use App\Http\Controllers\Api\StudentViolationController;
+use App\Http\Controllers\Api\ViolationTypeController;
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| API Routes — Sistem Informasi BK SMA Mardisiswa
+|--------------------------------------------------------------------------
+| Semua route di bawah ini wajib login (Sanctum) & role tertentu.
+| Role yang dipakai (lihat RoleSeeder): admin, guru_bk, guru_piket, wali_kelas.
+*/
+
+Route::middleware('auth:sanctum')->group(function () {
+
+    // ---- Dashboard ----------------------------------------------------
+    Route::prefix('dashboard')
+        ->middleware('role:admin|guru_bk|wali_kelas')
+        ->group(function () {
+            Route::get('/summary', [DashboardController::class, 'summary']);
+            Route::get('/attendance-trend', [DashboardController::class, 'attendanceTrend']);
+            Route::get('/students-needing-attention', [DashboardController::class, 'studentsNeedingAttention']);
+        });
+
+    // ---- Modul Input & Pencatatan Pelanggaran --------------------------
+    // Hanya Guru BK, Guru Piket, dan Admin yang boleh mencatat pelanggaran.
+    Route::prefix('violations')
+        ->middleware('role:admin|guru_bk|guru_piket')
+        ->group(function () {
+            Route::get('/', [StudentViolationController::class, 'index']);
+            Route::get('/lookup-student', [StudentViolationController::class, 'lookupStudent']);
+            Route::post('/', [StudentViolationController::class, 'store'])
+                ->middleware('permission:input pelanggaran');
+            Route::get('/{studentViolation}', [StudentViolationController::class, 'show']);
+            Route::delete('/{studentViolation}', [StudentViolationController::class, 'destroy'])
+                ->middleware('role:admin');
+        });
+
+    // ---- Master data jenis pelanggaran (read: semua; write: admin) ----
+    Route::prefix('violation-types')->group(function () {
+        Route::get('/', [ViolationTypeController::class, 'index']);
+        Route::middleware('role:admin')->group(function () {
+            Route::post('/', [ViolationTypeController::class, 'store']);
+            Route::put('/{violationType}', [ViolationTypeController::class, 'update']);
+            Route::delete('/{violationType}', [ViolationTypeController::class, 'destroy']);
+        });
+    });
+
+    // ---- Buku Induk Siswa ----------------------------------------------
+    Route::prefix('students')
+        ->middleware('role:admin|guru_bk|wali_kelas|guru_piket')
+        ->group(function () {
+            Route::get('/', [StudentController::class, 'index']);
+            Route::get('/{student}', [StudentController::class, 'show']); // profil + relasi lengkap
+            Route::middleware('role:admin')->group(function () {
+                Route::post('/', [StudentController::class, 'store']);
+                Route::put('/{student}', [StudentController::class, 'update']);
+            });
+        });
+
+    // ---- Sesi Konseling & Home Visit ------------------------------------
+    Route::prefix('counseling-sessions')
+        ->middleware('role:admin|guru_bk')
+        ->group(function () {
+            Route::get('/', [CounselingSessionController::class, 'index']);
+            Route::post('/', [CounselingSessionController::class, 'store']);
+            Route::put('/{counselingSession}', [CounselingSessionController::class, 'update']);
+        });
+});
