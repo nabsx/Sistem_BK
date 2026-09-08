@@ -119,7 +119,17 @@ class DatabaseSeeder extends Seeder
         foreach ($sessions as $session) {
             CounselingSession::firstOrCreate(
                 ['student_id' => $studentModels[$session['student']]->id, 'scheduled_at' => $session['scheduled_at']],
-                $session + ['id' => (string) Str::uuid(), 'counselor_id' => $counselor->id, 'status' => 'dijadwalkan', 'session_number' => 1],
+                [
+                    'id' => (string) Str::uuid(),
+                    'counselor_id' => $counselor->id,
+                    'type' => $session['type'],
+                    'topic_category' => $session['topic_category'],
+                    'topic' => $session['topic'],
+                    'location' => $session['location'],
+                    'scheduled_at' => $session['scheduled_at'],
+                    'status' => 'dijadwalkan',
+                    'session_number' => 1,
+                ],
             );
         }
     }
