@@ -20,6 +20,10 @@ class DashboardPageController extends Controller
             ->limit(10)
             ->get();
 
+        $monthViolations = StudentViolation::whereBetween('occurred_at', [now()->startOfMonth(), now()->endOfMonth()])->get();
+        $lateThisMonth = (clone $monthViolations)->whereHas('violationType', fn ($query) => $query->where('category', 'keterlambatan'))->count();
+        $alphaThisMonth = (clone $monthViolations)->whereHas('violationType', fn ($query) => $query->where('category', 'alpha'))->count();
+
         return view('welcome', [
             'currentUser' => auth()->user(),
             'totalStudents' => (clone $students)->count(),
@@ -30,8 +34,12 @@ class DashboardPageController extends Controller
             'todayLate' => (clone $todayViolations)->whereHas('violationType', fn ($query) => $query->where('category', 'keterlambatan'))->count(),
             'scheduledActions' => CounselingSession::whereIn('type', ['home_visit', 'panggilan_ortu'])->where('status', 'dijadwalkan')->count(),
             'attentionStudents' => $attentionStudents,
-            'agenda' => CounselingSession::with('student.schoolClass')->upcoming()->limit(3)->get(),
+            'agenda' => $agenda = CounselingSession::with('student.schoolClass')->upcoming()->limit(3)->get(),
             'topicDistribution' => StudentViolation::with('violationType')->get()->groupBy('violationType.category')->map->count(),
+            'monthViolationsCount' => $monthViolations->count(),
+            'lateThisMonth' => $lateThisMonth,
+            'alphaThisMonth' => $alphaThisMonth,
+            'agendaCount' => $agenda->count(),
         ]);
     }
 }

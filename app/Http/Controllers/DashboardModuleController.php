@@ -4,13 +4,33 @@ namespace App\Http\Controllers;
 
 use App\Models\CounselingSession;
 use App\Models\Student;
+use App\Models\SchoolClass;
 use App\Models\StudentViolation;
 use App\Models\ViolationType;
+use App\Http\Requests\StoreStudentRequest;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DashboardModuleController extends Controller
 {
+    public function createStudent()
+    {
+        return view('dashboard.students.create', [
+            'classes' => SchoolClass::orderBy('grade_level')->orderBy('name')->get(),
+        ]);
+    }
+
+    public function storeStudent(StoreStudentRequest $request)
+    {
+        $student = Student::create($request->validated() + [
+            'status' => 'aktif',
+            'discipline_points' => 0,
+            'discipline_status' => 'aman',
+        ]);
+
+        return redirect()->route('dashboard.student', $student)->with('success', 'Data siswa berhasil ditambahkan.');
+    }
+
     public function show(string $module)
     {
         $data = match ($module) {

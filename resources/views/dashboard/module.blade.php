@@ -3,7 +3,7 @@
 @section('content')
 <div class="page-wrap">
     <section class="panel module-panel">
-        <div class="panel-title"><div><h1>{{ $title }}</h1><p>{{ $description }}</p></div><a class="primary-action" href="{{ route('dashboard') }}"><span class="material-symbols-outlined">arrow_back</span>Dashboard</a></div>
+        <div class="panel-title"><div><h1>{{ $title }}</h1><p>{{ $description }}</p></div><div class="module-actions"><a class="soft-action" href="{{ route('dashboard') }}"><span class="material-symbols-outlined">arrow_back</span>Dashboard</a>@if($module === 'students')<a class="primary-action" href="{{ route('dashboard.student.create') }}"><span class="material-symbols-outlined">person_add</span>Tambah Siswa</a>@endif</div></div>
         <div class="module-table">
             @forelse($rows as $row)
                 @if($module === 'students')
