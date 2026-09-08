@@ -53,7 +53,7 @@ class DatabaseSeeder extends Seeder
         ])->mapWithKeys(function (array $attributes) use ($counselor) {
             $class = SchoolClass::updateOrCreate(
                 ['name' => $attributes['name'], 'academic_year' => '2024/2025', 'semester' => 'Ganjil'],
-                $attributes + ['homeroom_teacher_id' => $counselor->id],
+                $attributes + ['id' => (string) Str::uuid(), 'homeroom_teacher_id' => $counselor->id],
             );
 
             return [$class->name => $class];
@@ -72,7 +72,7 @@ class DatabaseSeeder extends Seeder
             $model = Student::updateOrCreate(
                 ['nis' => $student['nis']],
                 [
-                    'nisn' => $student['nisn'], 'name' => $student['name'], 'gender' => $student['gender'],
+                    'id' => (string) Str::uuid(), 'nisn' => $student['nisn'], 'name' => $student['name'], 'gender' => $student['gender'],
                     'status' => 'aktif', 'school_class_id' => $classes[$student['class']]->id,
                     'discipline_points' => $student['points'], 'discipline_status' => $student['status'],
                     'guardian_name' => 'Orang Tua '.$student['name'], 'guardian_relation' => 'Orang Tua',
@@ -88,7 +88,7 @@ class DatabaseSeeder extends Seeder
             ['category' => 'kerapian_atribut', 'name' => 'Kerapian Rambut dan Seragam', 'point_weight' => 10, 'severity' => 'ringan'],
             ['category' => 'ketertiban_khusus', 'name' => 'Tidak Hadir Tanpa Keterangan', 'point_weight' => 20, 'severity' => 'sedang'],
         ])->mapWithKeys(function (array $type) {
-            $model = ViolationType::updateOrCreate(['name' => $type['name']], $type + ['is_active' => true]);
+            $model = ViolationType::updateOrCreate(['name' => $type['name']], $type + ['id' => (string) Str::uuid(), 'is_active' => true]);
             return [$type['category'] => $model];
         });
 
@@ -103,7 +103,7 @@ class DatabaseSeeder extends Seeder
             StudentViolation::firstOrCreate(
                 ['student_id' => $studentModels[$violation['student']]->id, 'occurred_at' => now()->subDays($violation['days'])->startOfDay()],
                 [
-                    'violation_type_id' => $types[$violation['type']]->id, 'reported_by' => $teacher->id,
+                    'id' => (string) Str::uuid(), 'violation_type_id' => $types[$violation['type']]->id, 'reported_by' => $teacher->id,
                     'point_snapshot' => $violation['points'], 'location' => 'Gerbang Depan Sekolah',
                     'notes' => 'Dicatat melalui pemantauan kedisiplinan sekolah.', 'action_status' => $violation['action_status'],
                 ],
@@ -119,7 +119,7 @@ class DatabaseSeeder extends Seeder
         foreach ($sessions as $session) {
             CounselingSession::firstOrCreate(
                 ['student_id' => $studentModels[$session['student']]->id, 'scheduled_at' => $session['scheduled_at']],
-                $session + ['counselor_id' => $counselor->id, 'status' => 'dijadwalkan', 'session_number' => 1],
+                $session + ['id' => (string) Str::uuid(), 'counselor_id' => $counselor->id, 'status' => 'dijadwalkan', 'session_number' => 1],
             );
         }
     }
