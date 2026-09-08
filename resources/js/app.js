@@ -7,6 +7,30 @@ document.addEventListener("DOMContentLoaded", () => {
     const password = document.querySelector("#password");
 
     toggle?.addEventListener("click", () => sidebar?.classList.toggle("open"));
+
+    const profileMenu = document.querySelector("[data-profile-menu]");
+    const profileToggle = document.querySelector("[data-profile-toggle]");
+    const profileDropdown = document.querySelector("[data-profile-dropdown]");
+    const closeProfileMenu = () => {
+        if (!profileDropdown || !profileToggle) return;
+        profileDropdown.hidden = true;
+        profileToggle.setAttribute("aria-expanded", "false");
+        profileMenu?.classList.remove("is-open");
+    };
+    profileToggle?.addEventListener("click", () => {
+        if (!profileDropdown) return;
+        const isOpen = !profileDropdown.hidden;
+        profileDropdown.hidden = isOpen;
+        profileToggle.setAttribute("aria-expanded", String(!isOpen));
+        profileMenu?.classList.toggle("is-open", !isOpen);
+    });
+    document.addEventListener("click", (event) => {
+        if (profileMenu && !profileMenu.contains(event.target)) closeProfileMenu();
+    });
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") closeProfileMenu();
+    });
+
     passwordToggle?.addEventListener("click", () => {
         if (!password) return;
         const visible = password.type === "text";

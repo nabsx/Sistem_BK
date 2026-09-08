@@ -22,7 +22,24 @@
             </form>
             <div class="top-actions">
                 <a class="soft-action" href="{{ route('dashboard.export.violations') }}"><span class="material-symbols-outlined">download</span>Ekspor Pelanggaran</a>
-                <div class="profile"><div class="avatar">{{ collect(explode(' ', auth()->user()->name))->map(fn($part) => substr($part, 0, 1))->take(2)->implode('') }}</div><span><strong>{{ auth()->user()->name }}</strong><small>Guru BK</small></span></div>
+                <form class="dashboard-logout-form" method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button class="dashboard-logout-button" type="submit"><span class="material-symbols-outlined">logout</span><span>Logout</span></button>
+                </form>
+                <div class="profile-menu" data-profile-menu>
+                    <button class="profile profile-trigger" type="button" data-profile-toggle aria-expanded="false" aria-haspopup="true">
+                        <span class="avatar">{{ collect(explode(' ', auth()->user()->name))->map(fn($part) => substr($part, 0, 1))->take(2)->implode('') }}</span>
+                        <span><strong>{{ auth()->user()->name }}</strong><small>Guru BK</small></span>
+                        <span class="material-symbols-outlined profile-chevron">expand_more</span>
+                    </button>
+                    <div class="profile-dropdown" data-profile-dropdown hidden>
+                        <div class="profile-dropdown-heading"><strong>{{ auth()->user()->name }}</strong><small>Guru BK</small></div>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="profile-logout"><span class="material-symbols-outlined">logout</span>Logout</button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </header>
         @yield('content')
