@@ -14,7 +14,7 @@ class DashboardModuleController extends Controller
     public function show(string $module)
     {
         $data = match ($module) {
-            'students' => ['title' => 'Buku Induk Siswa', 'description' => 'Data siswa aktif dari database sekolah.', 'rows' => Student::with('schoolClass')->where('status', 'aktif')->orderBy('name')->paginate(20)],
+            'students' => ['title' => 'Buku Induk Siswa', 'description' => 'Data siswa aktif dari database sekolah.', 'rows' => Student::with('schoolClass')->where('status', 'aktif')->orderBy('name')->paginate(20), 'rowLink' => 'dashboard.student'],
             'violations' => ['title' => 'Input Pelanggaran', 'description' => 'Riwayat pelanggaran dan pencatatan kedisiplinan.', 'rows' => StudentViolation::with(['student', 'violationType', 'reporter'])->latest('occurred_at')->paginate(20)],
             'agenda' => ['title' => 'Jadwal & Home Visit', 'description' => 'Agenda konseling yang tersimpan dan terjadwal.', 'rows' => CounselingSession::with(['student', 'counselor'])->orderBy('scheduled_at')->paginate(20)],
             'assessments' => ['title' => 'Asesmen & Karir', 'description' => 'Ringkasan sesi dan topik pendampingan siswa.', 'rows' => CounselingSession::with('student')->latest('updated_at')->paginate(20)],
@@ -23,6 +23,40 @@ class DashboardModuleController extends Controller
         };
 
         return view('dashboard.module', $data + ['module' => $module]);
+    }
+
+    public function student(Student $student)
+    {
+        $student->load([
+            'schoolClass',
+            'violations.violationType',
+            'violations.reporter',
+            'counselingSessions.counselor',
+        ]);
+
+        $violations = $student->violations->sortByDesc('occurred_at')->values();
+        $sessions = $student->counselingSessions->sortByDesc('scheduled_at')->values();
+        $totalPoints = (int) $violations->sum('point_snapshot');
+        $attendance = $student->attendance_percentage ?? null;
+
+        return view('dashboard.student', compact('student', 'violations', 'sessions', 'totalPoints', 'attendance'));
+    }
+
+    public function exportStudent(Student $student): StreamedResponse
+    {
+        $student->load(['violations.violationType', 'violations.reporter', 'counselingSessions.counselor']);
+
+        return response()->streamDownload(function () use ($student) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['Buku Induk Siswa', $student->name]);
+            fputcsv($handle, ['NIS', $student->nis, 'NISN', $student->nisn, 'Kelas', $student->schoolClass?->name]);
+            fputcsv($handle, []);
+            fputcsv($handle, ['Tanggal', 'Jenis Pelanggaran', 'Poin', 'Pelapor', 'Status']);
+            foreach ($student->violations->sortByDesc('occurred_at') as $violation) {
+                fputcsv($handle, [$violation->occurred_at?->format('Y-m-d H:i'), $violation->violationType?->name, $violation->point_snapshot, $violation->reporter?->name, $violation->action_status]);
+            }
+            fclose($handle);
+        }, 'buku-induk-'.str($student->name)->slug().'.csv', ['Content-Type' => 'text/csv']);
     }
 
     public function search(Request $request)

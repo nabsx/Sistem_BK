@@ -20,6 +20,8 @@ Route::middleware('auth')->group(function () {
         ->whereIn('module', ['students', 'violations', 'agenda', 'assessments', 'reports', 'settings'])
         ->name('dashboard.module');
     Route::get('/dashboard/search', [DashboardModuleController::class, 'search'])->name('dashboard.search');
+    Route::get('/dashboard/students/{student}', [DashboardModuleController::class, 'student'])->name('dashboard.student');
+    Route::get('/dashboard/students/{student}/export', [DashboardModuleController::class, 'exportStudent'])->name('dashboard.student.export');
     Route::get('/dashboard/export/violations', [DashboardModuleController::class, 'exportViolations'])->name('dashboard.export.violations');
 });
 

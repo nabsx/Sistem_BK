@@ -6,7 +6,7 @@
     <div class="portal-chip"><span class="material-symbols-outlined">verified_user</span>Portal Bimbingan Terpadu</div>
     <nav class="nav-list" aria-label="Navigasi utama">
         <a class="nav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}"><span class="material-symbols-outlined">dashboard</span>Dashboard</a>
-        <a class="nav-item {{ request()->routeIs('dashboard.module') && request()->route('module') === 'students' ? 'active' : '' }}" href="{{ route('dashboard.module', 'students') }}"><span class="material-symbols-outlined">clinical_notes</span>Buku Induk Siswa</a>
+        <a class="nav-item {{ (request()->routeIs('dashboard.module') && request()->route('module') === 'students') || request()->routeIs('dashboard.student*') ? 'active' : '' }}" href="{{ route('dashboard.module', 'students') }}"><span class="material-symbols-outlined">clinical_notes</span>Buku Induk Siswa</a>
         <a class="nav-item {{ request()->routeIs('dashboard.module') && request()->route('module') === 'violations' ? 'active' : '' }}" href="{{ route('dashboard.module', 'violations') }}"><span class="material-symbols-outlined">assignment_late</span>Input Pelanggaran</a>
         <a class="nav-item {{ request()->routeIs('dashboard.module') && request()->route('module') === 'agenda' ? 'active' : '' }}" href="{{ route('dashboard.module', 'agenda') }}"><span class="material-symbols-outlined">event</span>Jadwal &amp; Home Visit</a>
         <a class="nav-item {{ request()->routeIs('dashboard.module') && request()->route('module') === 'assessments' ? 'active' : '' }}" href="{{ route('dashboard.module', 'assessments') }}"><span class="material-symbols-outlined">psychology</span>Asesmen &amp; Karir</a>

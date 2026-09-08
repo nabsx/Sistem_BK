@@ -7,7 +7,7 @@
         <div class="module-table">
             @forelse($rows as $row)
                 @if($module === 'students')
-                    <div class="module-row"><strong>{{ $row->name }}</strong><span>{{ $row->nis }} · {{ $row->schoolClass?->name ?? 'Tanpa kelas' }}</span><span>{{ $row->discipline_points }} poin</span></div>
+                    <a class="module-row" href="{{ route('dashboard.student', $row) }}"><strong>{{ $row->name }}</strong><span>{{ $row->nis }} · {{ $row->schoolClass?->name ?? 'Tanpa kelas' }}</span><span>{{ $row->discipline_points }} poin <span class="material-symbols-outlined row-arrow">chevron_right</span></span></a>
                 @elseif($module === 'violations' || $module === 'reports')
                     <div class="module-row"><strong>{{ $row->student?->name ?? 'Siswa tidak ditemukan' }}</strong><span>{{ $row->violationType?->name ?? 'Pelanggaran' }}</span><span>{{ $row->occurred_at?->format('d M Y') ?? '-' }}</span></div>
                 @elseif($module === 'agenda' || $module === 'assessments')
