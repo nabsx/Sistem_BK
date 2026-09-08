@@ -34,7 +34,7 @@ class DashboardModuleController extends Controller
     public function show(string $module)
     {
         $data = match ($module) {
-            'students' => ['title' => 'Buku Induk Siswa', 'description' => 'Data siswa aktif dari database sekolah.', 'rows' => Student::with('schoolClass')->where('status', 'aktif')->orderBy('name')->paginate(20), 'rowLink' => 'dashboard.student'],
+            'students' => ['title' => 'Buku Induk Siswa', 'description' => 'Data siswa aktif dari database sekolah.', 'rows' => Student::with(['schoolClass.homeroomTeacher'])->where('status', 'aktif')->orderBy('name')->paginate(10), 'rowLink' => 'dashboard.student', 'classes' => SchoolClass::orderBy('grade_level')->orderBy('name')->get(), 'studentMetrics' => $this->studentMetrics()],
             'violations' => ['title' => 'Input Pelanggaran', 'description' => 'Riwayat pelanggaran dan pencatatan kedisiplinan.', 'rows' => StudentViolation::with(['student', 'violationType', 'reporter'])->latest('occurred_at')->paginate(20)],
             'agenda' => ['title' => 'Jadwal & Home Visit', 'description' => 'Agenda konseling yang tersimpan dan terjadwal.', 'rows' => CounselingSession::with(['student', 'counselor'])->orderBy('scheduled_at')->paginate(20)],
             'assessments' => ['title' => 'Asesmen & Karir', 'description' => 'Ringkasan sesi dan topik pendampingan siswa.', 'rows' => CounselingSession::with('student')->latest('updated_at')->paginate(20)],
@@ -43,6 +43,21 @@ class DashboardModuleController extends Controller
         };
 
         return view('dashboard.module', $data + ['module' => $module]);
+    }
+
+    private function studentMetrics(): array
+    {
+        $total = Student::where('status', 'aktif')->count();
+        $safe = Student::where('status', 'aktif')->where('discipline_points', '<=', 30)->count();
+        $attention = Student::where('status', 'aktif')->whereBetween('discipline_points', [31, 60])->count();
+        $intervention = Student::where('status', 'aktif')->where('discipline_points', '>', 60)->count();
+        $percent = fn (int $value) => $total > 0 ? round(($value / $total) * 100, 1) : 0;
+
+        return compact('total', 'safe', 'attention', 'intervention') + [
+            'safePercent' => $percent($safe),
+            'attentionPercent' => $percent($attention),
+            'interventionPercent' => $percent($intervention),
+        ];
     }
 
     public function student(Student $student)
