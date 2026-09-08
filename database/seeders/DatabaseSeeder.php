@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
         $counselor = User::updateOrCreate(
             ['email' => 'bk.mardisiswa@example.com'],
             [
+                'id' => (string) Str::uuid(),
                 'name' => 'Ibu Siti Rahayu, M.Pd.',
                 'nip_nik' => '198304122008012014',
                 'password' => Hash::make('password'),
@@ -33,6 +34,7 @@ class DatabaseSeeder extends Seeder
         $teacher = User::updateOrCreate(
             ['email' => 'guru.piket@example.com'],
             [
+                'id' => (string) Str::uuid(),
                 'name' => 'Bapak Ahmad Fauzan, S.Pd.',
                 'nip_nik' => '197906152005011008',
                 'password' => Hash::make('password'),
