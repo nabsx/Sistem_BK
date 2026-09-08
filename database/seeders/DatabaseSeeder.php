@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\CounselingSession;
+use App\Models\DisciplineThreshold;
 use App\Models\SchoolClass;
 use App\Models\Student;
 use App\Models\StudentViolation;
@@ -19,6 +20,18 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
+        foreach ([
+            25 => ['status' => 'waspada', 'recommended_action' => 'Teguran Lisan Tercatat & Bimbingan Wali Kelas'],
+            50 => ['status' => 'perlu_pendampingan', 'recommended_action' => 'SP1 & Pendampingan Intensif Guru BK'],
+            75 => ['status' => 'panggilan_ortu', 'recommended_action' => 'Panggilan Resmi Orang Tua & Konferensi Kasus'],
+            100 => ['status' => 'panggilan_ortu', 'recommended_action' => 'Konferensi Kasus Tingkat Sekolah'],
+        ] as $points => $threshold) {
+            DisciplineThreshold::updateOrCreate(
+                ['points' => $points],
+                $threshold + ['id' => (string) Str::uuid(), 'is_active' => true, 'sop_reference' => 'SOP pembinaan disiplin berdasarkan akumulasi poin.'],
+            );
+        }
+
         $counselor = User::updateOrCreate(
             ['email' => 'bk.mardisiswa@example.com'],
             [

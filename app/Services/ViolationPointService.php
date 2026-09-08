@@ -2,11 +2,13 @@
 
 namespace App\Services;
 
+use App\Models\DisciplineThreshold;
 use App\Models\Student;
 use App\Models\StudentViolation;
 use App\Models\ViolationActionLog;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Collection;
 
 /**
  * ViolationPointService
@@ -25,6 +27,10 @@ use Illuminate\Support\Facades\Log;
  */
 class ViolationPointService
 {
+    public function __construct(protected NotificationService $notificationService)
+    {
+    }
+
     /**
      * Peta ambang batas poin -> [status siswa, rekomendasi tindakan, ringkasan SOP].
      * Urutan dari terkecil ke terbesar penting untuk menentukan threshold_crossed
@@ -80,6 +86,8 @@ class ViolationPointService
             if ($crossedThreshold !== null) {
                 $this->logThresholdCrossing($student, $violation, $pointsBefore, $pointsAfter, $crossedThreshold);
             }
+
+            $this->notificationService->queueViolationNotifications($violation, $student);
         });
     }
 
@@ -106,9 +114,9 @@ class ViolationPointService
     {
         $crossed = null;
 
-        foreach (array_keys(self::THRESHOLDS) as $threshold) {
-            if ($before < $threshold && $after >= $threshold) {
-                $crossed = $threshold; // ambil yang terbesar jika melompati >1 sekaligus
+        foreach ($this->thresholds() as $threshold) {
+            if ($before < $threshold->points && $after >= $threshold->points) {
+                $crossed = $threshold->points; // ambil yang terbesar jika melompati >1 sekaligus
             }
         }
 
@@ -117,15 +125,30 @@ class ViolationPointService
 
     protected function statusForPoints(int $points): string
     {
+        $thresholds = $this->thresholds();
         $status = 'aman';
 
-        foreach (self::THRESHOLDS as $threshold => $meta) {
-            if ($points >= $threshold) {
-                $status = $meta['status'];
+        foreach ($thresholds as $threshold) {
+            if ($points >= $threshold->points) {
+                $status = $threshold->status;
             }
         }
 
         return $status;
+    }
+
+    protected function thresholds(): Collection
+    {
+        $thresholds = DisciplineThreshold::query()->active()->get();
+
+        return $thresholds->isNotEmpty()
+            ? $thresholds
+            : collect(collect(self::THRESHOLDS)->map(fn (array $meta, int $points) => new DisciplineThreshold([
+                'points' => $points,
+                'status' => $meta['status'],
+'recommended_action' => $meta->recommended_action,
+                'sop_reference' => $meta['sop'],
+            ]))->values());
     }
 
     protected function logThresholdCrossing(
@@ -135,7 +158,7 @@ class ViolationPointService
         int $pointsAfter,
         int $threshold
     ): void {
-        $meta = self::THRESHOLDS[$threshold];
+        $meta = $this->thresholds()->firstWhere('points', $threshold);
 
         ViolationActionLog::create([
             'student_id' => $student->id,
@@ -143,8 +166,8 @@ class ViolationPointService
             'points_before' => $pointsBefore,
             'points_after' => $pointsAfter,
             'threshold_crossed' => $threshold,
-            'recommended_action' => $meta['action'],
-            'sop_reference' => $meta['sop'],
+            'recommended_action' => $meta->recommended_action,
+            'sop_reference' => $meta->sop_reference,
             'status' => 'open',
         ]);
 
