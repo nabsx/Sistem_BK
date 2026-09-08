@@ -7,6 +7,9 @@ use App\Http\Controllers\Api\StudentViolationController;
 use App\Http\Controllers\Api\ViolationTypeController;
 use Illuminate\Support\Facades\Route;
 
+Route::view('/', 'welcome')->name('home');
+Route::view('/dashboard', 'welcome')->name('dashboard');
+
 /*
 |--------------------------------------------------------------------------
 | API Routes — Sistem Informasi BK SMA Mardisiswa
