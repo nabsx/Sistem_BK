@@ -5,7 +5,17 @@ use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\StudentController;
 use App\Http\Controllers\Api\StudentViolationController;
 use App\Http\Controllers\Api\ViolationTypeController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DashboardPageController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/', [AuthController::class, 'create'])->name('login');
+Route::post('/login', [AuthController::class, 'store'])->name('login.store');
+Route::post('/logout', [AuthController::class, 'destroy'])->middleware('auth')->name('logout');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', DashboardPageController::class)->name('dashboard');
+});
 
 /*
 |--------------------------------------------------------------------------
