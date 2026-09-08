@@ -1,1 +1,21 @@
-<!doctype html><html lang="id" class="bg-[#f5f8fc]"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pencarian Siswa · BK Mardisiswa</title>@vite(['resources/css/app.css','resources/js/app.js'])</head><body class="dashboard-body"><main class="main-content"><div class="page-wrap"><a href="{{ route('dashboard') }}">← Kembali ke Dashboard</a><section class="panel" style="padding:32px;margin-top:24px"><h1>Hasil pencarian siswa</h1><form class="search-box" action="{{ route('dashboard.search') }}"><input name="q" value="{{ $term }}" placeholder="Nama, NIS, atau NISN"><button class="case-button">Cari</button></form><div class="module-table">@forelse($students as $student)<a class="module-row" href="{{ route('dashboard.module','students') }}"><strong>{{ $student->name }}</strong><span>{{ $student->nis }} · {{ $student->schoolClass?->name }}</span><span>{{ $student->discipline_points }} poin</span></a>@empty<div class="empty-state">Tidak ada siswa yang cocok dengan pencarian.</div>@endforelse</div></section></div></main></body></html>
+@extends('layouts.dashboard')
+
+@section('content')
+<div class="page-wrap">
+    <a href="{{ route('dashboard') }}">← Kembali ke Dashboard</a>
+    <section class="panel" style="padding:32px;margin-top:24px">
+        <h1>Hasil pencarian siswa</h1>
+        <form class="search-box" action="{{ route('dashboard.search') }}">
+            <input name="q" value="{{ $term }}" placeholder="Nama, NIS, atau NISN">
+            <button class="case-button">Cari</button>
+        </form>
+        <div class="module-table">
+            @forelse($students as $student)
+                <a class="module-row" href="{{ route('dashboard.module', 'students') }}"><strong>{{ $student->name }}</strong><span>{{ $student->nis }} · {{ $student->schoolClass?->name }}</span><span>{{ $student->discipline_points }} poin</span></a>
+            @empty
+                <div class="empty-state">Tidak ada siswa yang cocok dengan pencarian.</div>
+            @endforelse
+        </div>
+    </section>
+</div>
+@endsection

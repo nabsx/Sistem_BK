@@ -1,2 +1,25 @@
-<!doctype html>
-<html lang="id" class="bg-[#f5f8fc]"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{ $title }} · BK Mardisiswa</title>@vite(['resources/css/app.css','resources/js/app.js'])</head><body class="dashboard-body"><div class="app-shell"><aside class="sidebar"><div class="brand"><div class="brand-mark"><span class="material-symbols-outlined">school</span></div><div><strong>BK Mardisiswa</strong><small>LAYANAN KONSELING</small></div></div><nav class="nav-list"><a class="nav-item" href="{{ route('dashboard') }}">Dashboard</a><a class="nav-item {{ $module === 'students' ? 'active' : '' }}" href="{{ route('dashboard.module','students') }}">Buku Induk Siswa</a><a class="nav-item {{ $module === 'violations' ? 'active' : '' }}" href="{{ route('dashboard.module','violations') }}">Input Pelanggaran</a><a class="nav-item {{ $module === 'agenda' ? 'active' : '' }}" href="{{ route('dashboard.module','agenda') }}">Jadwal &amp; Home Visit</a><a class="nav-item {{ $module === 'assessments' ? 'active' : '' }}" href="{{ route('dashboard.module','assessments') }}">Asesmen &amp; Karir</a><a class="nav-item {{ $module === 'reports' ? 'active' : '' }}" href="{{ route('dashboard.module','reports') }}">Rekap &amp; Laporan</a><a class="nav-item {{ $module === 'settings' ? 'active' : '' }}" href="{{ route('dashboard.module','settings') }}">Pengaturan</a></nav></aside><main class="main-content"><header class="topbar"><form class="search-box" action="{{ route('dashboard.search') }}"><span class="material-symbols-outlined">search</span><input name="q" aria-label="Cari siswa" placeholder="Cari siswa, NIS, kelas..." value="{{ request('q') }}"></form><div class="top-actions"><a class="soft-action" href="{{ route('dashboard.export.violations') }}">Ekspor Pelanggaran</a><div class="profile"><div class="avatar">{{ collect(explode(' ', auth()->user()->name))->map(fn($part)=>substr($part,0,1))->take(2)->implode('') }}</div><span><strong>{{ auth()->user()->name }}</strong><small>{{ now()->translatedFormat('l, d F Y') }}</small></span></div></div></header><div class="page-wrap"><section class="panel" style="padding:32px"><span class="eyebrow"><span class="material-symbols-outlined">database</span>Data aktual database</span><h1>{{ $title }}</h1><p>{{ $description }} Diperbarui {{ now()->format('d/m/Y H:i') }} WIB.</p><div class="module-table">@forelse($rows as $row)<div class="module-row"><strong>{{ $row->student?->name ?? $row->name ?? $row->topic ?? $row->category ?? 'Data' }}</strong><span>{{ $row->student?->schoolClass?->name ?? $row->schoolClass?->name ?? $row->violationType?->name ?? $row->scheduled_at?->format('d M Y H:i') ?? $row->point_weight ?? 'Tersedia' }}</span><span>{{ $row->status ?? $row->discipline_status ?? $row->action_status ?? '' }}</span></div>@empty<div class="empty-state">Belum ada data pada modul ini.</div>@endforelse</div>{{ $rows->links() }}</section></div></main></div></body></html>
+@extends('layouts.dashboard')
+
+@section('content')
+<div class="page-wrap">
+    <section class="panel module-panel">
+        <div class="panel-title"><div><h1>{{ $title }}</h1><p>{{ $description }}</p></div><a class="primary-action" href="{{ route('dashboard') }}"><span class="material-symbols-outlined">arrow_back</span>Dashboard</a></div>
+        <div class="module-table">
+            @forelse($rows as $row)
+                @if($module === 'students')
+                    <div class="module-row"><strong>{{ $row->name }}</strong><span>{{ $row->nis }} · {{ $row->schoolClass?->name ?? 'Tanpa kelas' }}</span><span>{{ $row->discipline_points }} poin</span></div>
+                @elseif($module === 'violations' || $module === 'reports')
+                    <div class="module-row"><strong>{{ $row->student?->name ?? 'Siswa tidak ditemukan' }}</strong><span>{{ $row->violationType?->name ?? 'Pelanggaran' }}</span><span>{{ $row->occurred_at?->format('d M Y') ?? '-' }}</span></div>
+                @elseif($module === 'agenda' || $module === 'assessments')
+                    <div class="module-row"><strong>{{ $row->student?->name ?? 'Siswa tidak ditemukan' }}</strong><span>{{ $row->topic ?? 'Sesi konseling' }}</span><span>{{ $row->scheduled_at?->format('d M Y H:i') ?? '-' }}</span></div>
+                @else
+                    <div class="module-row"><strong>{{ $row->name }}</strong><span>{{ $row->category ?? 'Umum' }}</span><span>Aktif</span></div>
+                @endif
+            @empty
+                <div class="empty-state">Belum ada data untuk modul ini.</div>
+            @endforelse
+        </div>
+        @if(method_exists($rows, 'links'))<div class="pagination-wrap">{{ $rows->links() }}</div>@endif
+    </section>
+</div>
+@endsection
