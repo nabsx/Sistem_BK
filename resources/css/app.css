@@ -1086,3 +1086,9 @@ body {
         transition: none !important;
     }
 }
+.module-table { display: grid; gap: 0; margin-top: 22px; border: 1px solid #edf1f7; border-radius: 8px; overflow: hidden; }
+.module-row { display: grid; grid-template-columns: 1.4fr 1fr 0.7fr; gap: 12px; align-items: center; padding: 14px 16px; border-bottom: 1px solid #edf1f7; color: #526078; text-decoration: none; font-size: 11px; }
+.module-row:last-child { border-bottom: 0; }
+.module-row strong { color: #1f355d; }
+.module-row:hover { background: #f4f8ff; }
+.empty-state { padding: 32px; text-align: center; color: #788398; }

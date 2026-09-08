@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\StudentViolationController;
 use App\Http\Controllers\Api\ViolationTypeController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardPageController;
+use App\Http\Controllers\DashboardModuleController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [AuthController::class, 'create'])->name('login');
@@ -15,6 +16,11 @@ Route::post('/logout', [AuthController::class, 'destroy'])->middleware('auth')->
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardPageController::class)->name('dashboard');
+    Route::get('/dashboard/{module}', [DashboardModuleController::class, 'show'])
+        ->whereIn('module', ['students', 'violations', 'agenda', 'assessments', 'reports', 'settings'])
+        ->name('dashboard.module');
+    Route::get('/dashboard/search', [DashboardModuleController::class, 'search'])->name('dashboard.search');
+    Route::get('/dashboard/export/violations', [DashboardModuleController::class, 'exportViolations'])->name('dashboard.export.violations');
 });
 
 /*
