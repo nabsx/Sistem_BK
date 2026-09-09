@@ -7,6 +7,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const password = document.querySelector("#password");
 
     toggle?.addEventListener("click", () => sidebar?.classList.toggle("open"));
+    document.querySelectorAll(".nav-item").forEach((link) =>
+        link.addEventListener("click", () => sidebar?.classList.remove("open")),
+    );
 
     const profileMenu = document.querySelector("[data-profile-menu]");
     const profileToggle = document.querySelector("[data-profile-toggle]");

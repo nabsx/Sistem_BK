@@ -173,6 +173,29 @@ body {
     margin-left: auto;
 }
 .year-chip {
+    min-width: 157px;
+    justify-content: center;
+    line-height: 1.15;
+}
+.year-chip > span:last-child {
+    text-align: center;
+}
+.case-button {
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.icon-button {
+    cursor: pointer;
+    padding: 7px;
+    border-radius: 7px;
+}
+.icon-button:hover,
+.icon-button:focus-visible {
+    background: #eff4ff;
+    outline: none;
+}
+.year-chip {
     display: flex;
     align-items: center;
     gap: 5px;
@@ -274,8 +297,7 @@ body {
     color: #7a879c;
     font-size: 10px;
 }
-.profile-logout,
-.dashboard-logout-button {
+    .profile-logout {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -297,23 +319,8 @@ body {
 .profile-logout:hover {
     background: #ffe4e5;
 }
-.profile-logout .material-symbols-outlined,
-.dashboard-logout-button .material-symbols-outlined {
+.profile-logout .material-symbols-outlined {
     font-size: 16px;
-}
-.dashboard-logout-form {
-    display: inline-flex;
-}
-.dashboard-logout-button {
-    padding: 8px 11px;
-    border-radius: 7px;
-    background: #fff3f3;
-    color: #b32632;
-    font-size: 10px;
-    font-weight: 700;
-}
-.dashboard-logout-button:hover {
-    background: #ffe4e5;
 }
 .profile {
     display: flex;

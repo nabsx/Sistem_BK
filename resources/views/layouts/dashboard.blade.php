@@ -21,11 +21,14 @@
                 <input name="q" aria-label="Cari siswa" placeholder="Cari siswa, NIS, kelas..." value="{{ request('q') }}">
             </form>
             <div class="top-actions">
-                <a class="soft-action" href="{{ route('dashboard.export.violations') }}"><span class="material-symbols-outlined">download</span>Ekspor Pelanggaran</a>
-                <form class="dashboard-logout-form" method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button class="dashboard-logout-button" type="submit"><span class="material-symbols-outlined">logout</span><span>Logout</span></button>
-                </form>
+                <div class="year-chip" aria-label="Tahun ajaran 2024 sampai 2025, semester ganjil">
+                    <span class="material-symbols-outlined">school</span>
+                    <span>TA 2024/2025<small>Ganjil</small></span>
+                </div>
+                <a class="case-button" href="{{ route('dashboard.module', 'violations') }}"><span class="material-symbols-outlined">add_circle</span>Catat Kasus</a>
+                <button class="icon-button" type="button" aria-label="Notifikasi" title="Notifikasi">
+                    <span class="material-symbols-outlined">notifications_none</span><i aria-hidden="true"></i>
+                </button>
                 <div class="profile-menu" data-profile-menu>
                     <button class="profile profile-trigger" type="button" data-profile-toggle aria-expanded="false" aria-haspopup="true">
                         <span class="avatar">{{ collect(explode(' ', auth()->user()->name))->map(fn($part) => substr($part, 0, 1))->take(2)->implode('') }}</span>
