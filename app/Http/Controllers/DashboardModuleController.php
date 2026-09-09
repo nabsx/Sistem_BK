@@ -43,7 +43,9 @@ class DashboardModuleController extends Controller
             'settings' => ['title' => 'Pengaturan', 'description' => 'Jenis pelanggaran yang aktif di sistem.', 'rows' => ViolationType::orderBy('category')->orderBy('name')->paginate(20)],
         };
 
-        return view('dashboard.module', $data + ['module' => $module]);
+        $view = $module === 'violations' ? 'dashboard.violations' : 'dashboard.module';
+
+        return view($view, $data + ['module' => $module]);
     }
 
     private function studentMetrics(): array
