@@ -97,6 +97,28 @@ class DashboardModuleController extends Controller
         }, 'buku-induk-'.str($student->name)->slug().'.csv', ['Content-Type' => 'text/csv']);
     }
 
+    public function studentLookup(Request $request)
+    {
+        $term = trim((string) $request->query('q', ''));
+
+        if (mb_strlen($term) < 2) {
+            return response()->json([]);
+        }
+
+        return response()->json(Student::with('schoolClass')->where('status', 'aktif')
+            ->where(fn ($query) => $query->where('name', 'like', "%{$term}%")
+                ->orWhere('nis', 'like', "%{$term}%")
+                ->orWhere('nisn', 'like', "%{$term}%"))
+            ->orderBy('name')->limit(20)->get()
+            ->map(fn (Student $student) => [
+                'id' => $student->id,
+                'name' => $student->name,
+                'nis' => $student->nis,
+                'class' => $student->schoolClass?->name,
+                'points' => $student->discipline_points,
+            ]));
+    }
+
     public function search(Request $request)
     {
         $term = trim((string) $request->query('q', ''));

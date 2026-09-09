@@ -20,6 +20,7 @@ Route::middleware('auth')->group(function () {
         ->whereIn('module', ['students', 'violations', 'agenda', 'assessments', 'reports', 'settings'])
         ->name('dashboard.module');
     Route::get('/dashboard/search', [DashboardModuleController::class, 'search'])->name('dashboard.search');
+    Route::get('/dashboard/students/lookup', [DashboardModuleController::class, 'studentLookup'])->name('dashboard.students.lookup');
     Route::post('/dashboard/violations', [DashboardModuleController::class, 'storeViolation'])->name('dashboard.violation.store');
     Route::get('/dashboard/students/create', [DashboardModuleController::class, 'createStudent'])->name('dashboard.student.create');
     Route::post('/dashboard/students', [DashboardModuleController::class, 'storeStudent'])->name('dashboard.student.store');
