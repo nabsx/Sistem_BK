@@ -10,6 +10,8 @@ use App\Models\StudentViolation;
 use App\Models\User;
 use App\Models\ViolationType;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Permission;
+use App\Models\Role;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -20,6 +22,20 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
+        $permissions = ['input pelanggaran'];
+        foreach ($permissions as $permission) {
+            Permission::firstOrCreate(
+                ['name' => $permission, 'guard_name' => 'web'],
+                ['id' => (string) Str::uuid()],
+            );
+        }
+
+        $superAdmin = Role::firstOrCreate(
+            ['name' => 'super admin', 'guard_name' => 'web'],
+            ['id' => (string) Str::uuid()],
+        );
+        $superAdmin->givePermissionTo($permissions);
+
         foreach ([
             25 => ['status' => 'waspada', 'recommended_action' => 'Teguran Lisan Tercatat & Bimbingan Wali Kelas'],
             50 => ['status' => 'perlu_pendampingan', 'recommended_action' => 'SP1 & Pendampingan Intensif Guru BK'],
@@ -43,6 +59,8 @@ class DatabaseSeeder extends Seeder
                 'email_verified_at' => now(),
             ],
         );
+
+        $counselor->assignRole('super admin');
 
         $teacher = User::updateOrCreate(
             ['email' => 'guru.piket@example.com'],

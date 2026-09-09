@@ -7,6 +7,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const password = document.querySelector("#password");
 
     toggle?.addEventListener("click", () => sidebar?.classList.toggle("open"));
+    document
+        .querySelectorAll(".nav-item")
+        .forEach((link) =>
+            link.addEventListener("click", () =>
+                sidebar?.classList.remove("open"),
+            ),
+        );
 
     const profileMenu = document.querySelector("[data-profile-menu]");
     const profileToggle = document.querySelector("[data-profile-toggle]");
@@ -41,6 +48,75 @@ document.addEventListener("DOMContentLoaded", () => {
             visible ? "Tampilkan kata sandi" : "Sembunyikan kata sandi",
         );
     });
+
+    const studentLookup = document.querySelector("[data-student-lookup]");
+    if (studentLookup) {
+        const query = studentLookup.querySelector("[data-student-query]");
+        const results = studentLookup.querySelector("[data-student-results]");
+        const hiddenId = studentLookup.querySelector("[data-student-id]");
+        const selected = document.querySelector("[data-selected-student]");
+        let timer;
+        const renderResults = (students) => {
+            results.innerHTML = students.length
+                ? students
+                      .map(
+                          (student) =>
+                              `<button type="button" class="student-result" data-student-id="${student.id}" data-student-name="${student.name}" data-student-meta="${student.nis} · ${student.class ?? "Belum ada kelas"}" data-student-points="${student.points ?? 0}"><strong>${student.name}</strong><small>${student.nis} · ${student.class ?? "Belum ada kelas"}</small></button>`,
+                      )
+                      .join("")
+                : '<div class="student-result-empty">Siswa tidak ditemukan</div>';
+            results.hidden = false;
+        };
+        query?.addEventListener("input", () => {
+            clearTimeout(timer);
+            hiddenId.value = "";
+            selected.hidden = true;
+            const term = query.value.trim();
+            if (term.length < 2) {
+                results.hidden = true;
+                return;
+            }
+            timer = setTimeout(async () => {
+                const response = await fetch(
+                    `${studentLookup.dataset.endpoint}?q=${encodeURIComponent(term)}`,
+                    { headers: { Accept: "application/json" } },
+                );
+                renderResults(await response.json());
+            }, 250);
+        });
+        results?.addEventListener("click", (event) => {
+            const button = event.target.closest("[data-student-id]");
+            if (!button) return;
+            hiddenId.value = button.dataset.studentId;
+            query.value = button.dataset.studentName;
+            results.hidden = true;
+            selected.hidden = false;
+            selected.querySelector("[data-selected-initials]").textContent =
+                button.dataset.studentName
+                    .split(" ")
+                    .slice(0, 2)
+                    .map((word) => word[0])
+                    .join("")
+                    .toUpperCase();
+            selected.querySelector("[data-selected-name]").textContent =
+                button.dataset.studentName;
+            selected.querySelector("[data-selected-meta]").textContent =
+                button.dataset.studentMeta;
+            selected.querySelector("[data-selected-points]").textContent =
+                button.dataset.studentPoints;
+        });
+        studentLookup
+            .querySelector("[data-student-clear]")
+            ?.addEventListener("click", () => {
+                hiddenId.value = "";
+                query.value = "";
+                selected.hidden = true;
+                query.focus();
+            });
+        document.addEventListener("click", (event) => {
+            if (!studentLookup.contains(event.target)) results.hidden = true;
+        });
+    }
 
     const directory = document.querySelector("[data-student-directory]");
     if (directory) {

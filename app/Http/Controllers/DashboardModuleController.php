@@ -8,6 +8,7 @@ use App\Models\SchoolClass;
 use App\Models\StudentViolation;
 use App\Models\ViolationType;
 use App\Http\Requests\StoreStudentRequest;
+use App\Http\Requests\StoreStudentViolationRequest;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -35,14 +36,16 @@ class DashboardModuleController extends Controller
     {
         $data = match ($module) {
             'students' => ['title' => 'Buku Induk Siswa', 'description' => 'Data siswa aktif dari database sekolah.', 'rows' => Student::with(['schoolClass.homeroomTeacher'])->where('status', 'aktif')->orderBy('name')->paginate(10), 'rowLink' => 'dashboard.student', 'classes' => SchoolClass::orderBy('grade_level')->orderBy('name')->get(), 'studentMetrics' => $this->studentMetrics()],
-            'violations' => ['title' => 'Input Pelanggaran', 'description' => 'Riwayat pelanggaran dan pencatatan kedisiplinan.', 'rows' => StudentViolation::with(['student', 'violationType', 'reporter'])->latest('occurred_at')->paginate(20)],
+            'violations' => ['title' => 'Input Pelanggaran', 'description' => 'Riwayat pelanggaran dan pencatatan kedisiplinan.', 'rows' => StudentViolation::with(['student', 'violationType', 'reporter'])->latest('occurred_at')->paginate(20), 'students' => Student::with('schoolClass')->where('status', 'aktif')->orderBy('name')->get(), 'violationTypes' => ViolationType::active()->orderBy('category')->orderBy('name')->get()],
             'agenda' => ['title' => 'Jadwal & Home Visit', 'description' => 'Agenda konseling yang tersimpan dan terjadwal.', 'rows' => CounselingSession::with(['student', 'counselor'])->orderBy('scheduled_at')->paginate(20)],
             'assessments' => ['title' => 'Asesmen & Karir', 'description' => 'Ringkasan sesi dan topik pendampingan siswa.', 'rows' => CounselingSession::with('student')->latest('updated_at')->paginate(20)],
             'reports' => ['title' => 'Rekap & Laporan', 'description' => 'Rekap data operasional BK berdasarkan data aktual.', 'rows' => StudentViolation::with(['student', 'violationType'])->latest('occurred_at')->paginate(20)],
             'settings' => ['title' => 'Pengaturan', 'description' => 'Jenis pelanggaran yang aktif di sistem.', 'rows' => ViolationType::orderBy('category')->orderBy('name')->paginate(20)],
         };
 
-        return view('dashboard.module', $data + ['module' => $module]);
+        $view = $module === 'violations' ? 'dashboard.violations' : 'dashboard.module';
+
+        return view($view, $data + ['module' => $module]);
     }
 
     private function studentMetrics(): array
@@ -94,6 +97,28 @@ class DashboardModuleController extends Controller
         }, 'buku-induk-'.str($student->name)->slug().'.csv', ['Content-Type' => 'text/csv']);
     }
 
+    public function studentLookup(Request $request)
+    {
+        $term = trim((string) $request->query('q', ''));
+
+        if (mb_strlen($term) < 2) {
+            return response()->json([]);
+        }
+
+        return response()->json(Student::with('schoolClass')->where('status', 'aktif')
+            ->where(fn ($query) => $query->where('name', 'like', "%{$term}%")
+                ->orWhere('nis', 'like', "%{$term}%")
+                ->orWhere('nisn', 'like', "%{$term}%"))
+            ->orderBy('name')->limit(20)->get()
+            ->map(fn (Student $student) => [
+                'id' => $student->id,
+                'name' => $student->name,
+                'nis' => $student->nis,
+                'class' => $student->schoolClass?->name,
+                'points' => $student->discipline_points,
+            ]));
+    }
+
     public function search(Request $request)
     {
         $term = trim((string) $request->query('q', ''));
@@ -102,6 +127,29 @@ class DashboardModuleController extends Controller
             ->orderBy('name')->limit(20)->get();
 
         return view('dashboard.search', compact('students', 'term'));
+    }
+
+    public function storeViolation(StoreStudentViolationRequest $request)
+    {
+        abort_unless($request->user()->can('input pelanggaran'), 403, 'Anda tidak memiliki izin untuk mencatat pelanggaran.');
+
+        $type = ViolationType::active()->findOrFail($request->validated('violation_type_id'));
+        $path = $request->hasFile('evidence') ? $request->file('evidence')->store('violation-evidence', 'public') : null;
+        StudentViolation::create([
+            'student_id' => $request->validated('student_id'),
+            'violation_type_id' => $type->id,
+            'reported_by' => $request->user()->id,
+            'point_snapshot' => $type->point_weight,
+            'occurred_at' => $request->validated('occurred_at'),
+            'location' => $request->validated('location'),
+            'notes' => $request->validated('notes'),
+            'evidence_path' => $path,
+            'notified_homeroom_teacher' => $request->boolean('notify_homeroom_teacher'),
+            'notified_guardian' => $request->boolean('notify_guardian'),
+            'notified_at' => now(),
+        ]);
+
+        return redirect()->route('dashboard.module', 'violations')->with('success', 'Pelanggaran berhasil dicatat dan poin siswa diperbarui.');
     }
 
     public function exportViolations(): StreamedResponse

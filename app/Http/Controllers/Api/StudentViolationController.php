@@ -42,6 +42,8 @@ class StudentViolationController extends Controller
      */
     public function store(StoreStudentViolationRequest $request)
     {
+        abort_unless($request->user()->can('input pelanggaran'), 403, 'Anda tidak memiliki izin untuk mencatat pelanggaran.');
+
         $violationType = ViolationType::query()->active()->findOrFail($request->validated('violation_type_id'));
 
         $evidencePath = null;
