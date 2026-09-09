@@ -107,6 +107,8 @@ class DashboardModuleController extends Controller
 
     public function storeViolation(StoreStudentViolationRequest $request)
     {
+        abort_unless($request->user()->can('input pelanggaran'), 403, 'Anda tidak memiliki izin untuk mencatat pelanggaran.');
+
         $type = ViolationType::active()->findOrFail($request->validated('violation_type_id'));
         $path = $request->hasFile('evidence') ? $request->file('evidence')->store('violation-evidence', 'public') : null;
         StudentViolation::create([

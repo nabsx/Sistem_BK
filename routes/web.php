@@ -20,7 +20,7 @@ Route::middleware('auth')->group(function () {
         ->whereIn('module', ['students', 'violations', 'agenda', 'assessments', 'reports', 'settings'])
         ->name('dashboard.module');
     Route::get('/dashboard/search', [DashboardModuleController::class, 'search'])->name('dashboard.search');
-    Route::post('/dashboard/violations', [DashboardModuleController::class, 'storeViolation'])->name('dashboard.violation.store')->middleware('permission:input pelanggaran');
+    Route::post('/dashboard/violations', [DashboardModuleController::class, 'storeViolation'])->name('dashboard.violation.store');
     Route::get('/dashboard/students/create', [DashboardModuleController::class, 'createStudent'])->name('dashboard.student.create');
     Route::post('/dashboard/students', [DashboardModuleController::class, 'storeStudent'])->name('dashboard.student.store');
     Route::get('/dashboard/students/{student}', [DashboardModuleController::class, 'student'])->name('dashboard.student');
@@ -54,8 +54,7 @@ Route::middleware('auth:sanctum')->group(function () {
         ->group(function () {
             Route::get('/', [StudentViolationController::class, 'index']);
             Route::get('/lookup-student', [StudentViolationController::class, 'lookupStudent']);
-            Route::post('/', [StudentViolationController::class, 'store'])
-                ->middleware('permission:input pelanggaran');
+            Route::post('/', [StudentViolationController::class, 'store']);
             Route::get('/{studentViolation}', [StudentViolationController::class, 'show']);
             Route::delete('/{studentViolation}', [StudentViolationController::class, 'destroy'])
                 ->middleware('role:admin');
