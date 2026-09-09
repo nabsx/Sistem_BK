@@ -24,9 +24,17 @@ class DatabaseSeeder extends Seeder
     {
         $permissions = ['input pelanggaran'];
         foreach ($permissions as $permission) {
-            Permission::findOrCreate($permission, 'web');
+            Permission::firstOrCreate(
+                ['name' => $permission, 'guard_name' => 'web'],
+                ['id' => (string) Str::uuid()],
+            );
         }
-        Role::findOrCreate('super admin', 'web')->givePermissionTo($permissions);
+
+        $superAdmin = Role::firstOrCreate(
+            ['name' => 'super admin', 'guard_name' => 'web'],
+            ['id' => (string) Str::uuid()],
+        );
+        $superAdmin->givePermissionTo($permissions);
 
         foreach ([
             25 => ['status' => 'waspada', 'recommended_action' => 'Teguran Lisan Tercatat & Bimbingan Wali Kelas'],
